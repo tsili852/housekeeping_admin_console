@@ -6,8 +6,19 @@ import router from './router'
 import Vuetify from 'vuetify'
 import VueMq from 'vue-mq'
 import 'vuetify/dist/vuetify.min.css'
+import colors from 'vuetify/es5/util/colors'
 
-Vue.use(Vuetify)
+Vue.use(Vuetify, {
+  theme: {
+    primary: colors.deepOrange.darken4,
+    secondary: colors.indigo.darken2,
+    accent: colors.deepOrange.accent1,
+    info: colors.blue.lighten3,
+    warning: colors.amber.lighten2,
+    error: colors.red.accent2,
+    success: colors.green.lighten2
+  }
+})
 Vue.use(VueMq, {
   breakpoints: {
     mobile: 450,

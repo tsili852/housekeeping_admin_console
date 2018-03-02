@@ -51,7 +51,7 @@
         <v-icon>fas fa-user</v-icon>
       </v-btn>
     </v-toolbar>
-    <v-content>
+    <v-content class="main-content">
       <router-view/>
     </v-content>
     <v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
@@ -95,13 +95,12 @@
 </script>
 
 <style scoped>
-  .title-spacer {
-    flex: 1 1 auto;
+  .main-content {
+    background-color: #EEEEEE;
   }
 
-  #title-container {
-    /* font-size: 19px; */
-    text-decoration: underline;
+  .title-spacer {
+    flex: 1 1 auto;
   }
 
   .small-title {
