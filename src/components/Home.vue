@@ -8,6 +8,20 @@
               <router-link to="/repairs" class="header-link">Repairs</router-link>
             </p>
           </div>
+          <div class="actions-container">
+            <v-tooltip left>
+              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark>
+                <v-icon>refresh</v-icon>
+              </v-btn>
+              <span>Refresh Statistics</span>
+            </v-tooltip>
+            <v-tooltip right>
+              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark>
+                <v-icon>add</v-icon>
+              </v-btn>
+              <span>Announce a Repair</span>
+            </v-tooltip>
+          </div>
           <div class="panel-contents">
             <v-data-table :items="repairInfo" class="elevation-1" hide-actions hide-headers>
               <template slot="items" slot-scope="props">
@@ -94,6 +108,11 @@ export default {
       housekeepingInfo: []
     };
   },
+  methods: {
+    refresh() {
+      alert('refresh');
+    }
+  },
   created() {
     // HTTP.get("clients")
     //   .then(response => {
@@ -134,6 +153,16 @@ export default {
   margin-bottom: 10px;
 }
 
+.actions-container {
+  /* height: 40px; */
+  /* border: 1px solid #303f9f; */
+  border: 1px solid #bf360c;
+  width: fit-content;
+  margin: auto;
+  margin-bottom: 5px;
+  border-radius: 3px;
+}
+
 .sub-panel-header {
   height: 30px;
   padding-top: 2px;
@@ -142,8 +171,8 @@ export default {
   font-size: 17px;
   text-align: center;
   width: fit-content;
-  padding-left: 5px;
-  padding-right: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
   /* width: 180px; */
   border-radius: 3px;
   margin: auto;

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer persistent :mini-variant="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app>
+    <v-navigation-drawer persistent :mini-variant.sync="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app>
       <v-list>
         <v-list-tile :to="{path: '/'}" active-class="deep-orange--text text--darken-3">
           <v-list-tile-action>
@@ -112,7 +112,7 @@ export default {
       noHotelSN: true,
       title: "Hotel Housekeeping",
       versionNumber: "v0.0.1",
-      versionDate: "02/03/2018",
+      versionDate: "08/03/2018",
       hotelSN: ""
     };
   },
@@ -134,6 +134,7 @@ export default {
     },
     onSubmitHotelSN() {
       this.noHotelSN = false;
+      this.hotelSN = '';
       this.$localStorage.set('hotelSN', this.hotelSN);
       console.log(`Hotel SN: ${this.hotelSN}`);
     },
