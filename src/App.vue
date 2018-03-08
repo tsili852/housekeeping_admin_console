@@ -39,12 +39,12 @@
     <v-toolbar app :clipped-left="clipped" color="deep-orange darken-4" dark>
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <mq-layout mq="tablet+">
-        <v-btn v-if="drawer" icon @click.stop="miniVariant = !miniVariant">
+        <v-btn v-if="drawer" icon @click.stop="miniVariantChange">
           <v-icon v-html="miniVariant ? 'fas fa-toggle-off' : 'fas fa-toggle-on'"></v-icon>
         </v-btn>
       </mq-layout>
       <span class="title-spacer"></span>
-      <img src="/static/favicon.ico" height="30" width="30"></img>
+      <img src="/static/favicon.ico" height="30" width="30">
       <v-toolbar-title id="title-container" :class="$mq === 'mobile' ? 'small-title' : 'big-title'" v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn icon @click.stop="rightDrawer = !rightDrawer">
@@ -56,11 +56,11 @@
     </v-content>
     <v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
       <v-list>
-        <v-list-tile>
+        <v-list-tile @click="onSingOut">
           <v-list-tile-action>
-            <v-icon>compare_arrows</v-icon>
+            <v-icon>fa-sign-out-alt</v-icon>
           </v-list-tile-action>
-          <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
+          <v-list-tile-title>Sign-out</v-list-tile-title>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
@@ -73,30 +73,86 @@
         <a href="http://netera.gr">www.netera.gr</a>
       </span>
     </v-footer>
+    <v-dialog v-model="noHotelSN" lazy persistent max-width="500px">
+      <v-card>
+        <v-card-title>
+        <p id="login-header" class="secondary--text">
+          Welcome to Hotel Housekeeping
+        </p>
+        <p>Please enter your Hotel's Serial Number. <br>If you do not know it please contact Netera Software.</p>
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+            :rules="[rules.required]"
+            name="input-1"
+            label="Hotel Serial Number"
+            v-model="hotelSN"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn small color="primary" @click.stop="onSubmitHotelSN"><v-icon>done</v-icon>Submit</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
-        clipped: true,
-        drawer: true,
-        fixed: true,
-        miniVariant: false,
-        rightDrawer: false,
-        title: 'Hotel Housekeeping',
-        versionNumber: 'v0.0.1',
-        versionDate: '02/03/2018'
-      }
+export default {
+  data() {
+    return {
+      rules: {
+        required: value => !!value || "Please enter your HotelSN"
+      },
+      clipped: true,
+      drawer: true,
+      fixed: true,
+      miniVariant: false,
+      rightDrawer: false,
+      noHotelSN: true,
+      title: "Hotel Housekeeping",
+      versionNumber: "v0.0.1",
+      versionDate: "02/03/2018",
+      hotelSN: ""
+    };
+  },
+  created() {
+    this.miniVariant = this.$localStorage.get('miniVariant');
+    this.hotelSN = this.$localStorage.get('hotelSN');
+    if (!this.hotelSN) {
+      this.noHotelSN = true;
+    }
+    else {
+      this.noHotelSN = false;
+    }
+    console.log(this.miniVariant);
+  },
+  methods: {
+    miniVariantChange() {
+      this.miniVariant = !this.miniVariant;
+      this.$localStorage.set('miniVariant', this.miniVariant);
     },
-    name: 'App'
+    onSubmitHotelSN() {
+      this.noHotelSN = false;
+      this.$localStorage.set('hotelSN', this.hotelSN);
+      console.log(`Hotel SN: ${this.hotelSN}`);
+    },
+    onSingOut() {
+      this.rightDrawer = false;
+      this.noHotelSN = true;
+      this.$localStorage.remove('hotelSN');
+    }
   }
+};
 </script>
 
 <style scoped>
+  #login-header {
+    font-size: 20px;
+  }
+
   .main-content {
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
   }
 
   .title-spacer {

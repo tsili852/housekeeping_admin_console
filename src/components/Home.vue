@@ -31,7 +31,26 @@
                 <td>{{ props.item.name }}</td>
                 <td class="text-xs-right">{{ props.item.value }}</td>
               </template>
+              <template slot="no-data">
+                <v-alert :value="true" color="warning" icon="info" transition="slide-x-reverse-transition">
+                  <span style="color:black">
+                    Housekeeping coming soon !
+                  </span>
+                </v-alert>
+              </template>
             </v-data-table>
+          </div>
+        </div>
+      </v-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 sm6 raised>
+        <div class="panel-container">
+          <div class="sub-panel-header">
+            <p>Rooms with pending repairs</p>
+          </div>
+          <div class="panel-contents">
+            <repair-rooms-list></repair-rooms-list>
           </div>
         </div>
       </v-flex>
@@ -40,92 +59,104 @@
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
-        repairInfo: [
-          {
-            value: 12,
-            name: 'Pending Repairs'
-          },
-          {
-            value: 7,
-            name: 'Rooms with pending repairs'
-          },
-          {
-            value: 92,
-            name: 'Total Repairs'
-          },
-          {
-            value: '10 mins',
-            name: 'Average Fix Time'
-          },
-          {
-            value: '2 hours',
-            name: 'Last repare before'
-          }
-        ],
-        housekeepingInfo: [
-          {
-            value: 85,
-            name: 'Clean Rooms'
-          },
-          {
-            value: 15,
-            name: 'Dirty Rooms'
-          },
-          {
-            value: 6,
-            name: 'OoO Rooms'
-          },
-          {
-            value: '54',
-            name: 'Visitors Staying'
-          },
-          {
-            value: '',
-            name: ''
-          }
-        ]
-      }
-    }
+// @ts-check
+import { HTTP } from "../http-common";
+import RepairRoomsList from "./shared/RepairRoomsList";
+
+export default {
+  components: {
+    RepairRoomsList
+  },
+  data() {
+    return {
+      repairInfo: [
+        {
+          value: 12,
+          name: "Pending Repairs"
+        },
+        {
+          value: 7,
+          name: "Rooms with pending repairs"
+        },
+        {
+          value: 92,
+          name: "Total Pending"
+        },
+        {
+          value: "10 mins",
+          name: "Average Fix Time"
+        },
+        {
+          value: "8/3/2018 11:46",
+          name: "Last announcement"
+        }
+      ],
+      housekeepingInfo: []
+    };
+  },
+  created() {
+    // HTTP.get("clients")
+    //   .then(response => {
+    //     console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
+    //   })
+    //   .catch(error => {
+    //     console.log(`Error: ${error.message}`);
+    //   });
   }
+};
 </script>
 
 <style scoped>
-  .panel-container {
-    border: 1px solid rgba(123, 133, 201, 0.386);
-    border-radius: 5px;
-    /* height: 200px; */
-    box-shadow: 0 12px 20px -10px rgba(123, 134, 201, .28), 0 4px 20px 0 rgba(0, 0, 0, .12), 0 7px 8px -5px rgba(123, 134, 201, 0.2);
-    margin-left: 10px;
-    margin-right: 10px;
-    background-color: #fff;
-    margin-bottom: 10px;
-    padding: 5px;
-  }
+.panel-container {
+  border: 1px solid rgba(123, 133, 201, 0.386);
+  border-radius: 5px;
+  /* height: 200px; */
+  box-shadow: 0 12px 20px -10px rgba(123, 134, 201, 0.28),
+    0 4px 20px 0 rgba(0, 0, 0, 0.12), 0 7px 8px -5px rgba(123, 134, 201, 0.2);
+  margin-left: 10px;
+  margin-right: 10px;
+  background-color: #fff;
+  margin-bottom: 10px;
+  padding: 5px;
+}
 
-  .panel-header {
-    height: 30px;
-    padding-top: 2px;
-    background: linear-gradient(60deg, rgb(67, 81, 167), #303F9F);
-    color: white;
-    font-size: 17px;
-    text-align: center;
-    width: 180px;
-    border-radius: 3px;
-    margin: auto;
-    margin-top: 5px;
-    margin-bottom: 10px;
-  }
+.panel-header {
+  height: 30px;
+  padding-top: 2px;
+  background: linear-gradient(60deg, rgb(67, 81, 167), #303f9f);
+  color: white;
+  font-size: 17px;
+  text-align: center;
+  width: 180px;
+  border-radius: 3px;
+  margin: auto;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
 
-  .header-link {
-    color: white;
-    text-decoration: unset;
-  }
+.sub-panel-header {
+  height: 30px;
+  padding-top: 2px;
+  background: linear-gradient(60deg, rgb(193, 82, 49), #bf360c);
+  color: white;
+  font-size: 17px;
+  text-align: center;
+  width: fit-content;
+  padding-left: 5px;
+  padding-right: 5px;
+  /* width: 180px; */
+  border-radius: 3px;
+  margin: auto;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
 
-  .panel-header:hover {
-    background: linear-gradient(60deg, rgb(92, 109, 215), rgb(71, 86, 183));
-  }
+.header-link {
+  color: white;
+  text-decoration: unset;
+}
 
+.panel-header:hover {
+  background: linear-gradient(60deg, rgb(92, 109, 215), rgb(71, 86, 183));
+}
 </style>

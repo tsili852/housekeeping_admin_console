@@ -7,6 +7,7 @@ import Vuetify from 'vuetify'
 import VueMq from 'vue-mq'
 import 'vuetify/dist/vuetify.min.css'
 import colors from 'vuetify/es5/util/colors'
+import VueLocalStorage from 'vue-localstorage';
 
 Vue.use(Vuetify, {
   theme: {
@@ -19,6 +20,9 @@ Vue.use(Vuetify, {
     success: colors.green.lighten2
   }
 })
+
+Vue.use(VueLocalStorage)
+
 Vue.use(VueMq, {
   breakpoints: {
     mobile: 450,
@@ -35,5 +39,10 @@ new Vue({
   el: '#app',
   router,
   components: { App },
-  template: '<App/>'
+  render: h => h(App),
+  localStorage: {
+    miniVariant: {
+      type: Boolean
+    }
+  }
 })
