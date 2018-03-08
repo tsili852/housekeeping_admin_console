@@ -102,7 +102,7 @@ export default {
   data() {
     return {
       rules: {
-        required: value => !!value || "Please enter your HotelSN"
+        required: value => !!value || "Please enter your Hotel Serial Number"
       },
       clipped: true,
       drawer: true,
