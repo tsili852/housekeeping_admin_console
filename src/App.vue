@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer persistent :mini-variant.sync="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app>
+    <v-navigation-drawer persistent :mini-variant.sync="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app disable-route-watcher>
       <v-list>
         <v-list-tile :to="{path: '/'}" active-class="deep-orange--text text--darken-3">
           <v-list-tile-action>
