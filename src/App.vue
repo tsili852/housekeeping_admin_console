@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer persistent :mini-variant.sync="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app disable-route-watcher>
+    <v-navigation-drawer persistent :mini-variant="miniVariant" :clipped="clipped" v-model="drawer" enable-resize-watcher fixed app disable-route-watcher>
       <v-list>
         <v-list-tile :to="{path: '/'}" active-class="deep-orange--text text--darken-3">
           <v-list-tile-action>
@@ -56,7 +56,7 @@
     </v-content>
     <v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
       <v-list>
-        <v-list-tile @click="onSingOut">
+        <v-list-tile @click="onSingOut">c
           <v-list-tile-action>
             <v-icon>fa-sign-out-alt</v-icon>
           </v-list-tile-action>

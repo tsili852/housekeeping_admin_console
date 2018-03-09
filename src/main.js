@@ -13,7 +13,7 @@ Vue.use(Vuetify, {
   theme: {
     primary: colors.deepOrange.darken4,
     secondary: colors.indigo.darken2,
-    accent: colors.deepOrange.accent1,
+    accent: colors.deepOrange.lighten-4,
     info: colors.blue.lighten3,
     warning: colors.amber.lighten2,
     error: colors.red.accent2,

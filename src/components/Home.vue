@@ -110,7 +110,7 @@ export default {
   },
   methods: {
     refresh() {
-      alert('refresh');
+      alert("refresh");
     }
   },
   created() {
