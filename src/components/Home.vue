@@ -10,13 +10,18 @@
           </div>
           <div class="actions-container">
             <v-tooltip left>
-              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark>
+              <v-btn 
+                slot="activator" 
+                style="width:30px;height:30px" 
+                :loading="infoLoading"
+                :disabled="infoLoading"
+                color="primary" small fab>
                 <v-icon>refresh</v-icon>
               </v-btn>
               <span>Refresh Statistics</span>
             </v-tooltip>
             <v-tooltip right>
-              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark>
+              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab>
                 <v-icon>add</v-icon>
               </v-btn>
               <span>Announce a Repair</span>
@@ -73,9 +78,11 @@
 </template>
 
 <script>
-// @ts-check
+//@ts-check
+
 import { HTTP } from "../http-common";
-import RepairRoomsList from "./shared/RepairRoomsList";
+import RepairRoomsList from "./shared/RepairRoomsList.vue";
+// import RepairRoomsList from "./shared/RepairRoomsList";
 
 export default {
   components: {
@@ -83,44 +90,53 @@ export default {
   },
   data() {
     return {
-      repairInfo: [
-        {
-          value: 12,
-          name: "Pending Repairs"
-        },
-        {
-          value: 7,
-          name: "Rooms with pending repairs"
-        },
-        {
-          value: 92,
-          name: "Total Pending"
-        },
-        {
-          value: "10 mins",
-          name: "Average Fix Time"
-        },
-        {
-          value: "8/3/2018 11:46",
-          name: "Last announcement"
-        }
-      ],
-      housekeepingInfo: []
+      homeInfo: {},
+      housekeepingInfo: [],
+      repairInfo: [],
+      infoLoading: false
     };
   },
   methods: {
     refresh() {
-      alert("refresh");
+      this.getHomeInformation();
+    },
+    getHomeInformation() {
+      this.infoLoading = true;
+
+      HTTP.get("GetHomeInformation?HotelSN=20141207")
+      .then(response => {
+        console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
+        this.homeInfo = response.data;
+        this.repairInfo.push({
+          name: "Pending Repairs",
+          value: this.homeInfo.pendingRepairs
+        });
+        this.repairInfo.push({
+          name: "Rooms with pending repairs",
+          value: this.homeInfo.pendingRepairsRooms
+        });
+        this.repairInfo.push({
+          name: "Fixed Repairs",
+          value: this.homeInfo.completeRepairs
+        });
+        this.repairInfo.push({
+          name: "Average Fix Time",
+          value: this.homeInfo.averageTime
+        });
+        this.repairInfo.push({
+          name: "Last announcement",
+          value: this.homeInfo.lastAnnouncement
+        });
+
+        this.infoLoading = false;
+      })
+      .catch(error => {
+        console.log(`Error: ${error.message}`);
+      });
     }
   },
   created() {
-    // HTTP.get("clients")
-    //   .then(response => {
-    //     console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
-    //   })
-    //   .catch(error => {
-    //     console.log(`Error: ${error.message}`);
-    //   });
+    this.getHomeInformation();
   }
 };
 </script>

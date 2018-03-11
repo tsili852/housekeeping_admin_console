@@ -2,5 +2,6 @@
 import axios from 'axios';
 
 export const HTTP = axios.create({
-  baseURL: 'https://dev-predefined-orders.chb-technologies.ch/api/'
+  // baseURL: 'https://cloudhotel.gr/welcome/CommunicationService/'
+  baseURL: 'http://localhost:55252/CommunicationService/'
 })

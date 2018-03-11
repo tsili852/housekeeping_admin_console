@@ -47,8 +47,9 @@
       <img src="/static/favicon.ico" height="30" width="30">
       <v-toolbar-title id="title-container" :class="$mq === 'mobile' ? 'small-title' : 'big-title'" v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click.stop="rightDrawer = !rightDrawer">
-        <v-icon>fas fa-user</v-icon>
+      <v-btn style="text-transform:none" depressed color="primary" @click.stop="rightDrawer = !rightDrawer">
+        <v-icon left small>fas fa-user</v-icon>
+        <span>{{ hotel.name }}</span>
       </v-btn>
     </v-toolbar>
     <v-content class="main-content">
@@ -56,7 +57,7 @@
     </v-content>
     <v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
       <v-list>
-        <v-list-tile @click="onSingOut">c
+        <v-list-tile @click="onSingOut">
           <v-list-tile-action>
             <v-icon>fa-sign-out-alt</v-icon>
           </v-list-tile-action>
@@ -86,9 +87,23 @@
             :rules="[rules.required]"
             name="input-1"
             label="Hotel Serial Number"
-            v-model="hotelSN"
+            v-model="hotel.hotelSN"
           ></v-text-field>
         </v-card-text>
+        <v-alert 
+          v-if="hotelSNError" 
+          type="error"
+          transition="scale-transition"
+          :value="true">
+          Wrong Hotel Serial Number !!
+        </v-alert>
+        <v-alert 
+          v-if="hotelSNCorrect" 
+          type="success"
+          transition="scale-transition"
+          :value="true">
+          Welcome {{ hotel.name }}
+        </v-alert>
         <v-card-actions>
           <v-btn small color="primary" @click.stop="onSubmitHotelSN"><v-icon>done</v-icon>Submit</v-btn>
         </v-card-actions>
@@ -98,6 +113,9 @@
 </template>
 
 <script>
+// @ts-check
+import { HTTP } from "./http-common";
+
 export default {
   data() {
     return {
@@ -110,73 +128,115 @@ export default {
       miniVariant: false,
       rightDrawer: false,
       noHotelSN: true,
+      hotelSNError: false,
+      hotelSNCorrect: false,
       title: "Hotel Housekeeping",
       versionNumber: "v0.0.1",
       versionDate: "08/03/2018",
-      hotelSN: ""
+      hotel: {
+        hotelSN: "",
+        name: ""
+      }
     };
   },
   created() {
-    this.miniVariant = this.$localStorage.get('miniVariant');
-    this.hotelSN = this.$localStorage.get('hotelSN');
-    if (!this.hotelSN) {
+    this.miniVariant = this.$localStorage.get("miniVariant");
+    this.hotel.hotelSN = this.$localStorage.get("hotelSN");
+    if (!this.hotel.hotelSN) {
       this.noHotelSN = true;
-    }
-    else {
+    } else {
       this.noHotelSN = false;
     }
-    console.log(this.miniVariant);
+
+    HTTP.get(`GetHotelInformation?HotelSN=${this.hotel.hotelSN}`)
+      .then(result => {
+        console.log(`Result: ${JSON.stringify(result, null, 2)}`);
+        
+        if (result.status == 200 && result.data) {
+          this.hotel.name = result.data.Name;
+        } else {
+          this.hotel.name = 'No Hotel'
+        }
+      }
+    )
+    .catch(error => {
+      console.log(`Error: ${JSON.stringify(error, null, 2)}`);      
+      this.hotel.name = 'No Hotel'
+    })
   },
   methods: {
     miniVariantChange() {
       this.miniVariant = !this.miniVariant;
-      this.$localStorage.set('miniVariant', this.miniVariant);
+      this.$localStorage.set("miniVariant", this.miniVariant);
     },
     onSubmitHotelSN() {
-      this.noHotelSN = false;
-      this.hotelSN = '';
-      this.$localStorage.set('hotelSN', this.hotelSN);
-      console.log(`Hotel SN: ${this.hotelSN}`);
+      if (this.hotel.hotelSN) {
+        HTTP.get(`GetHotelInformation?HotelSN=${this.hotel.hotelSN}`)
+          .then(result => {
+            if (result.status == 200 && result.data) {
+              this.hotelSNError = false;
+              this.hotel.name = result.data.Name;
+              this.hotelSNCorrect = true;
+              this.$localStorage.set("hotelSN", this.hotel.hotelSN);
+
+              setTimeout(() => {
+                this.noHotelSN = false;
+                this.hotelSNCorrect = false;
+              }, 2000);
+
+            } else {
+              this.hotelSNError = true;
+            }
+          }
+        )
+        .catch(error => {
+          console.log(`Error: ${JSON.stringify(error, null, 2)}`);      
+          this.hotelSNError = true;    
+        })
+      }
+      // this.noHotelSN = false;
+      // this.hotel.hotelSN = "";
+      // console.log(`Hotel SN: ${this.hotel.hotelSN}`);
     },
     onSingOut() {
       this.rightDrawer = false;
       this.noHotelSN = true;
-      this.$localStorage.remove('hotelSN');
+      this.$localStorage.remove("hotelSN");
     }
   }
 };
 </script>
 
 <style scoped>
-  #login-header {
-    font-size: 20px;
-  }
+#login-header {
+  font-size: 20px;
+}
 
-  .main-content {
-    background-color: #eeeeee;
-  }
+.main-content {
+  background-color: #eeeeee;
+}
 
-  .title-spacer {
-    flex: 1 1 auto;
-  }
+.title-spacer {
+  flex: 1 1 auto;
+}
 
-  .small-title {
-    font-size: 16px;
-  }
+.small-title {
+  font-size: 16px;
+}
 
-  .big-title {
-    font-size: 19px;
-  }
+.big-title {
+  font-size: 19px;
+}
 
-  #version-tag {
-    margin-left: 20px;
-  }
+#version-tag {
+  margin-left: 20px;
+}
 
-  #date-tag {
-    font-weight: lighter;
-  }
+#date-tag {
+  font-weight: lighter;
+}
 
-  #copyright-tag {
-    margin-right: 20px;
-  }
+#copyright-tag {
+  margin-right: 20px;
+}
 </style>
