@@ -10,9 +10,9 @@
           </div>
           <div class="actions-container">
             <v-tooltip left>
-              <v-btn 
-                slot="activator" 
-                style="width:30px;height:30px" 
+              <v-btn
+                slot="activator"
+                style="width:30px;height:30px"
                 :loading="infoLoading"
                 :disabled="infoLoading"
                 color="primary" small fab>
@@ -96,6 +96,11 @@ export default {
       infoLoading: false
     };
   },
+  computed: {
+    hotelSN() {
+      return this.$store.state.hotelSN;
+    }
+  },
   methods: {
     refresh() {
       this.getHomeInformation();
@@ -103,7 +108,7 @@ export default {
     getHomeInformation() {
       this.infoLoading = true;
 
-      HTTP.get("GetHomeInformation?HotelSN=20141207")
+      HTTP.get("Hotel/home/hotelsn=20180312")
       .then(response => {
         console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
         this.homeInfo = response.data;
@@ -125,7 +130,7 @@ export default {
         });
         this.repairInfo.push({
           name: "Last announcement",
-          value: this.homeInfo.lastAnnouncement
+          value: this.homeInfo.lastAnouncement
         });
 
         this.infoLoading = false;

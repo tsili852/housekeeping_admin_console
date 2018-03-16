@@ -90,15 +90,15 @@
             v-model="hotel.hotelSN"
           ></v-text-field>
         </v-card-text>
-        <v-alert 
-          v-if="hotelSNError" 
+        <v-alert
+          v-if="hotelSNError"
           type="error"
           transition="scale-transition"
           :value="true">
           Wrong Hotel Serial Number !!
         </v-alert>
-        <v-alert 
-          v-if="hotelSNCorrect" 
+        <v-alert
+          v-if="hotelSNCorrect"
           type="success"
           transition="scale-transition"
           :value="true">
@@ -148,19 +148,20 @@ export default {
       this.noHotelSN = false;
     }
 
-    HTTP.get(`GetHotelInformation?HotelSN=${this.hotel.hotelSN}`)
+    HTTP.get(`Hotel/hotelsn=${this.hotel.hotelSN}`)
       .then(result => {
         console.log(`Result: ${JSON.stringify(result, null, 2)}`);
-        
+        console.log(`Hotel Name : ${this.hotel.name}`);
         if (result.status == 200 && result.data) {
-          this.hotel.name = result.data.Name;
+          this.hotel.name = result.data.name;
         } else {
           this.hotel.name = 'No Hotel'
         }
+        console.log(`Hotel Name : ${this.hotel.name}`);
       }
     )
     .catch(error => {
-      console.log(`Error: ${JSON.stringify(error, null, 2)}`);      
+      console.log(`Error: ${JSON.stringify(error, null, 2)}`);
       this.hotel.name = 'No Hotel'
     })
   },
@@ -171,11 +172,11 @@ export default {
     },
     onSubmitHotelSN() {
       if (this.hotel.hotelSN) {
-        HTTP.get(`GetHotelInformation?HotelSN=${this.hotel.hotelSN}`)
+        HTTP.get(`Hotel/hotelsn=${this.hotel.hotelSN}`)
           .then(result => {
             if (result.status == 200 && result.data) {
               this.hotelSNError = false;
-              this.hotel.name = result.data.Name;
+              this.hotel.name = result.data.name;
               this.hotelSNCorrect = true;
               this.$localStorage.set("hotelSN", this.hotel.hotelSN);
 
@@ -190,8 +191,8 @@ export default {
           }
         )
         .catch(error => {
-          console.log(`Error: ${JSON.stringify(error, null, 2)}`);      
-          this.hotelSNError = true;    
+          console.log(`Error: ${JSON.stringify(error, null, 2)}`);
+          this.hotelSNError = true;
         })
       }
       // this.noHotelSN = false;
