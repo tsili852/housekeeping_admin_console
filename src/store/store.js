@@ -23,5 +23,10 @@ export const store = new Vuex.Store({
     updateHotelSN: state => {
       state.hotelSN = '2101840'
     }
+  },
+  actions: {
+    updateHotelSNAsync: context => {
+      context.commit('updateHotelSN');
+    }
   }
 });
