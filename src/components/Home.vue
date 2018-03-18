@@ -81,8 +81,8 @@
 //@ts-check
 
 import { HTTP } from "../http-common";
-import RepairRoomsList from "./shared/RepairRoomsList.vue";
-// import RepairRoomsList from "./shared/RepairRoomsList";
+import RepairRoomsList from "./shared/RepairRoomsList";
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   components: {
@@ -97,18 +97,31 @@ export default {
     };
   },
   computed: {
-    hotelSN() {
-      return this.$store.state.hotelSN;
+    ...mapGetters([
+      'hotel',
+      'hotelsn',
+      'isHotelSNCorrect'
+    ])
+  },
+  watch: {
+    hotelsn: (val) => {
+      console.log(`Hotelsn changed: ${JSON.stringify(val, null, 2)}`);
+    },
+    hotel: (val) => {
+      console.log(`Hotel changed: ${JSON.stringify(val, null, 2)}`);
     }
   },
   methods: {
+    ...mapActions([
+      'updateHotel'
+    ]),
     refresh() {
       this.getHomeInformation();
     },
     getHomeInformation() {
       this.infoLoading = true;
 
-      HTTP.get("Hotel/home/hotelsn=20180312")
+      HTTP.get(`Hotel/home/hotelsn=${this.hotelsn}`)
       .then(response => {
         console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
         this.homeInfo = response.data;

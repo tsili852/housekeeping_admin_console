@@ -87,7 +87,7 @@
             :rules="[rules.required]"
             name="input-1"
             label="Hotel Serial Number"
-            v-model="hotel.hotelSN"
+            v-model="hotel.hotelsn"
           ></v-text-field>
         </v-card-text>
         <v-alert
@@ -115,6 +115,7 @@
 <script>
 // @ts-check
 import { HTTP } from "./http-common";
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   data() {
@@ -133,30 +134,41 @@ export default {
       title: "Hotel Housekeeping",
       versionNumber: "v0.0.1",
       versionDate: "08/03/2018",
-      hotel: {
-        hotelSN: "",
-        name: ""
-      }
+      // hotel: {
+      //   hotelSN: "",
+      //   name: ""
+      // }
     };
+  },
+  computed: {
+    ...mapGetters([
+      'hotel',
+      'hotelsn',
+      'isHotelSNCorrect'
+    ])
   },
   created() {
     this.miniVariant = this.$localStorage.get("miniVariant");
-    this.hotel.hotelSN = this.$localStorage.get("hotelSN");
-    if (!this.hotel.hotelSN) {
+    this.updateHotel({hotelsn: this.$localStorage.get("hotelsn"), name: ''})
+    // this.hotel.hotelSN = this.$localStorage.get("hotelSN");
+    if (!this.hotel.hotelsn) {
       this.noHotelSN = true;
     } else {
       this.noHotelSN = false;
     }
 
-    HTTP.get(`Hotel/hotelsn=${this.hotel.hotelSN}`)
+    HTTP.get(`Hotel/hotelsn=${this.hotel.hotelsn}`)
       .then(result => {
+        let hotelName = 'No Hotel';
+
         console.log(`Result: ${JSON.stringify(result, null, 2)}`);
-        console.log(`Hotel Name : ${this.hotel.name}`);
         if (result.status == 200 && result.data) {
-          this.hotel.name = result.data.name;
-        } else {
-          this.hotel.name = 'No Hotel'
-        }
+          hotelName = result.data.name;
+          // this.hotel.name = result.data.name;
+        // } else {
+        //   this.hotel.name = 'No Hotel'
+        } 
+        this.updateHotel({hotelsn: this.hotel.hotelsn, name: hotelName});        
         console.log(`Hotel Name : ${this.hotel.name}`);
       }
     )
@@ -166,19 +178,24 @@ export default {
     })
   },
   methods: {
+    ...mapActions([
+      'updateHotel'
+    ]),
     miniVariantChange() {
       this.miniVariant = !this.miniVariant;
       this.$localStorage.set("miniVariant", this.miniVariant);
     },
     onSubmitHotelSN() {
-      if (this.hotel.hotelSN) {
-        HTTP.get(`Hotel/hotelsn=${this.hotel.hotelSN}`)
+      console.log(`HotelSN: ${this.hotelsn}`);
+      if (this.hotel.hotelsn) {
+        HTTP.get(`Hotel/hotelsn=${this.hotel.hotelsn}`)
           .then(result => {
             if (result.status == 200 && result.data) {
               this.hotelSNError = false;
-              this.hotel.name = result.data.name;
+              this.updateHotel({hotelsn: result.data.hotelsn, name: result.data.name});
+              // this.hotel.name = result.data.name;
               this.hotelSNCorrect = true;
-              this.$localStorage.set("hotelSN", this.hotel.hotelSN);
+              this.$localStorage.set("hotelsn", this.hotel.hotelsn);
 
               setTimeout(() => {
                 this.noHotelSN = false;
@@ -202,7 +219,7 @@ export default {
     onSingOut() {
       this.rightDrawer = false;
       this.noHotelSN = true;
-      this.$localStorage.remove("hotelSN");
+      this.$localStorage.remove("hotelsn");
     }
   }
 };
