@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "lodash": "^4.17.5",
+    "moment": "^2.21.0",
+    "npm": "^5.7.1",
     "vue": "^2.5.2",
     "vue-localstorage": "^0.6.1",
     "vue-mq": "^0.1.0",

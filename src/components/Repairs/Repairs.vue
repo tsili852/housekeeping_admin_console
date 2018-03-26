@@ -35,9 +35,9 @@
               must-sort
               :rows-per-page-items="rowsPerPage">
               <template slot="items" slot-scope="rooms">
-                <tr :class="{'room-selected': selectedRoom.roomNumber === rooms.item.roomNumber}" @click="onSelectRoom(rooms.item)">
-                  <td>{{ rooms.item.roomNumber }}</td>
-                  <td>{{ rooms.item.pendingRepairs }}/{{ rooms.item.totalRepairs }}</td>
+                <tr :class="{'room-selected': selectedRoom.Number === rooms.item.Number}" @click="onSelectRoom(rooms.item)">
+                  <td>{{ rooms.item.Number }}</td>
+                  <td>{{ rooms.item.PendingRepairsCount }}/{{ rooms.item.AllRepairsCount }}</td>
                 </tr>
               </template>
             </v-data-table>
@@ -47,7 +47,7 @@
       <v-flex xs12 sm4>
         <div class="panel-container">
           <div class="panel-header">
-            <p>Repairs for room <span style="color:#FFCCBC;font-weight:bold">{{ selectedRoom.roomNumber }}</span></p>
+            <p>Repairs for room <span style="color:#FFCCBC;font-weight:bold">{{ selectedRoom.Number }}</span></p>
           </div>
           <div class="actions-container">
             <v-tooltip left>
@@ -67,7 +67,17 @@
               <span>Announce a Repair</span>
             </v-tooltip>
           </div>
-            <div class="panel-contents">
+          <div class="panel-contents">
+            <v-data-table :items="selectedRoom.Repairs" class="elevation-1" hide-headers must-sort :rows-per-page-items="rowsPerPage">
+              <template slot="items" slot-scope="repairs">
+                <td v-if="!repairs.item.EndAt"><v-icon color="warning">fa-exclamation-circle</v-icon></td>
+                <td v-if="repairs.item.EndAt"><v-icon color="success">fa-check-circle</v-icon></td>
+                <td>{{ repairs.item.Description }}</td>
+                <td>{{ repairs.item.AnnouncedAt | date }}</td>
+              </template>
+            </v-data-table>
+          </div>
+          <!-- <div class="panel-contents">
             <v-data-table :items="selectedRoom.repairs" class="elevation-1" hide-headers must-sort :rows-per-page-items="rowsPerPage">
               <template slot="items" slot-scope="repairs">
                 <td v-if="!repairs.item.fixed"><v-icon color="warning">fa-exclamation-circle</v-icon></td>
@@ -76,7 +86,7 @@
                 <td>{{ repairs.item.anouncementTime }}</td>
               </template>
             </v-data-table>
-          </div>
+          </div> -->
         </div>
       </v-flex>
       <v-flex xs12 sm5>
@@ -111,7 +121,10 @@
 
 <script>
 //@ts-check
-import axios from "axios";
+import { HTTP } from "../../http-common";
+import { mapGetters, mapActions } from "vuex";
+import dateFilter from "../../filters/date";
+import * as _ from 'lodash';
 
 export default {
   data() {
@@ -120,64 +133,34 @@ export default {
       allRooms: [],
       roomsLoading: false,
       onlyPending: false,
+      daysBefore: 30,
       roomHeaders: [
         {
           text: "Room",
-          value: "roomNumber"
+          value: "Number"
         },
         {
           text: "Pending/All",
-          value: "pendingRepairs"
+          value: "PendingRepairsCount"
         }
       ],
       selectedRepair: {
-        description: 'Broken Door',
-        amount: '15.4',
-        reportedFrom: 'Customer',
-        status: 'fixed'
+        description: "Broken Door",
+        amount: "15.4",
+        reportedFrom: "Customer",
+        status: "fixed"
       },
-      whoReportedList: [
-        'Customer',
-        'Maid',
-        'Technician',
-        'Reception'
-      ],
+      whoReportedList: ["Customer", "Maid", "Technician", "Reception"],
+      // selectedRoom: {}
       selectedRoom: {
-        roomNumber: '',
-        roomID: '',
-        roomDescription: '',
-        repairs: [
-          {
-            description: 'Broken Door',
-            anouncementTime: '03/03/2018 11:00',
-            amount: '15.4',
-            reportedFrom: 'Customer',
-            fixed: false
-          },
-          {
-            description: 'Σπασμένη Λάμπα',
-            anouncementTime: '02/03/2018 06:22',
-            amount: '0.80',
-            reportedFrom: 'Maid',
-            fixed: false
-          },
-          {
-            description: 'Τηλεκοντρόλ Τηλεόρασης',
-            anouncementTime: '02/03/2018 14:10',
-            amount: '0',
-            reportedFrom: 'Customer',
-            fixed: true
-          },
-          {
-            description: 'Στάζει το καζανάκι',
-            anouncementTime: '02/02/2018 12:34',
-            amount: '0',
-            reportedFrom: 'Technician',
-            fixed: true
-          },
-        ]
+        Number: "",
+        RoomID: "",
+        Repairs: []
       }
     };
+  },
+  computed: {
+    ...mapGetters(["hotel", "hotelsn", "isHotelSNCorrect"])
   },
   created() {
     this.getRooms();
@@ -185,12 +168,14 @@ export default {
   methods: {
     getRooms() {
       this.roomsLoading = true;
-      axios.get("https://api.myjson.com/bins/10vl49")
+      HTTP.get(`Room/repairs/hotelsn=${this.hotelsn}&skip=0&take=0&daysBefore=${this.daysBefore}`)
         .then(result => {
           console.log(`Data: ${JSON.stringify(result, null, 2)}`);
-          if (result.data) {
+          if (result.status == 200 && result.data) {
             this.allRooms = result.data;
-            this.selectedRoom.roomNumber = this.allRooms[1].roomNumber
+            this.selectedRoom.Number = this.allRooms[0].Number;
+            this.selectedRoom.Repairs = this.allRooms[0].Repairs;
+            // this.selectedRoom = this.allRooms[0];
           }
           this.roomsLoading = false;
         })
@@ -200,10 +185,18 @@ export default {
         });
     },
     onSelectRoom(room) {
-      this.selectedRoom.roomNumber = room.roomNumber;
+      this.selectedRoom.Number = room.Number;
     },
     onChangeSelection() {
       this.onlyPending = !this.onlyPending;
+      if (this.daysBefore == 0) {
+        this.daysBefore = 30
+      }
+      else {
+        this.daysBefore = 0;
+      }
+
+      this.getRooms();
     }
   }
 };
@@ -274,10 +267,10 @@ export default {
 }
 
 .room-selected {
-  background-color: #FFCCBC;
+  background-color: #ffccbc;
 }
 
 .rooms-table-tr:hover {
-  background-color: #FFCCBC;
+  background-color: #ffccbc;
 }
 </style>

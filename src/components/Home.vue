@@ -15,6 +15,7 @@
                 style="width:30px;height:30px"
                 :loading="infoLoading"
                 :disabled="infoLoading"
+                @click="refresh()"
                 color="primary" small fab>
                 <v-icon>refresh</v-icon>
               </v-btn>
@@ -81,8 +82,9 @@
 //@ts-check
 
 import { HTTP } from "../http-common";
-import RepairRoomsList from "./shared/RepairRoomsList";
+import RepairRoomsList from "./shared/RepairRoomsList.vue";
 import { mapGetters, mapActions } from 'vuex';
+import dateFilter from '../filters/date';
 
 export default {
   components: {
@@ -104,11 +106,8 @@ export default {
     ])
   },
   watch: {
-    hotelsn: (val) => {
-      console.log(`Hotelsn changed: ${JSON.stringify(val, null, 2)}`);
-    },
-    hotel: (val) => {
-      console.log(`Hotel changed: ${JSON.stringify(val, null, 2)}`);
+    hotelsn: function(val) {
+      this.refresh();
     }
   },
   methods: {
@@ -123,8 +122,9 @@ export default {
 
       HTTP.get(`Hotel/home/hotelsn=${this.hotelsn}`)
       .then(response => {
-        console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
+        // console.log(`Data: ${JSON.stringify(response.data, null, 2)}`);
         this.homeInfo = response.data;
+        this.repairInfo = [];
         this.repairInfo.push({
           name: "Pending Repairs",
           value: this.homeInfo.pendingRepairs
@@ -143,7 +143,7 @@ export default {
         });
         this.repairInfo.push({
           name: "Last announcement",
-          value: this.homeInfo.lastAnouncement
+          value: dateFilter(this.homeInfo.lastAnouncement)
         });
 
         this.infoLoading = false;

@@ -8,6 +8,7 @@ import VueMq from 'vue-mq'
 import 'vuetify/dist/vuetify.min.css'
 import colors from 'vuetify/es5/util/colors'
 import VueLocalStorage from 'vue-localstorage';
+import DateFilter from './filters/date';
 
 import { store } from './store/store';
 
@@ -33,6 +34,8 @@ Vue.use(VueMq, {
     desktop: Infinity
   }
 })
+
+Vue.filter('date', DateFilter);
 
 Vue.config.productionTip = false
 

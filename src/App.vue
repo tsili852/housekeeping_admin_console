@@ -87,7 +87,7 @@
             :rules="[rules.required]"
             name="input-1"
             label="Hotel Serial Number"
-            v-model="hotel.hotelsn"
+            v-model="tempHotelSN"
           ></v-text-field>
         </v-card-text>
         <v-alert
@@ -105,7 +105,7 @@
           Welcome {{ hotel.name }}
         </v-alert>
         <v-card-actions>
-          <v-btn small color="primary" @click.stop="onSubmitHotelSN"><v-icon>done</v-icon>Submit</v-btn>
+          <v-btn v-if="!hotelSNCorrect" small color="primary" @click.stop="onSubmitHotelSN"><v-icon>done</v-icon>Submit</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -134,10 +134,7 @@ export default {
       title: "Hotel Housekeeping",
       versionNumber: "v0.0.1",
       versionDate: "08/03/2018",
-      // hotel: {
-      //   hotelSN: "",
-      //   name: ""
-      // }
+      tempHotelSN: ''
     };
   },
   computed: {
@@ -150,7 +147,6 @@ export default {
   created() {
     this.miniVariant = this.$localStorage.get("miniVariant");
     this.updateHotel({hotelsn: this.$localStorage.get("hotelsn"), name: ''})
-    // this.hotel.hotelSN = this.$localStorage.get("hotelSN");
     if (!this.hotel.hotelsn) {
       this.noHotelSN = true;
     } else {
@@ -161,12 +157,9 @@ export default {
       .then(result => {
         let hotelName = 'No Hotel';
 
-        console.log(`Result: ${JSON.stringify(result, null, 2)}`);
+        // console.log(`Result: ${JSON.stringify(result, null, 2)}`);
         if (result.status == 200 && result.data) {
           hotelName = result.data.name;
-          // this.hotel.name = result.data.name;
-        // } else {
-        //   this.hotel.name = 'No Hotel'
         } 
         this.updateHotel({hotelsn: this.hotel.hotelsn, name: hotelName});        
         console.log(`Hotel Name : ${this.hotel.name}`);
@@ -186,9 +179,8 @@ export default {
       this.$localStorage.set("miniVariant", this.miniVariant);
     },
     onSubmitHotelSN() {
-      console.log(`HotelSN: ${this.hotelsn}`);
-      if (this.hotel.hotelsn) {
-        HTTP.get(`Hotel/hotelsn=${this.hotel.hotelsn}`)
+      if (this.tempHotelSN) {
+        HTTP.get(`Hotel/hotelsn=${this.tempHotelSN}`)
           .then(result => {
             if (result.status == 200 && result.data) {
               this.hotelSNError = false;
