@@ -67,7 +67,7 @@
       <v-flex xs12 sm6 raised>
         <div class="panel-container">
           <div class="sub-panel-header">
-            <p>Rooms with pending repairs</p>
+            <p>Pending Repairs</p>
           </div>
           <div class="panel-contents">
             <repair-rooms-list></repair-rooms-list>

@@ -1,9 +1,9 @@
 <template>
-  <v-data-table :headers="roomsWithRepairsHeaders" :items="roomsWithRepairs" class="elevation-1">
+  <v-data-table :headers="pendingRepairsHeaders" :items="pendingRepairs" class="elevation-1">
     <template slot="items" slot-scope="rooms">
-      <td>{{ rooms.item.Number }}</td>
-      <td>{{ rooms.item.PendingRepairsCount }}</td>
-      <td>{{ rooms.item.LastAnnouncement | date }}</td>
+      <td>{{ rooms.item.roomNumber }}</td>
+      <td>{{ rooms.item.description }}</td>
+      <td>{{ rooms.item.announceTime | date }}</td>
     </template>
     <template slot="pageText" slot-scope="props">
       Rooms {{ props.pageStart }} - {{ props.pageStop }} of {{ props.itemsLength }}
@@ -19,21 +19,21 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   data() {
     return {
-      roomsWithRepairsHeaders: [
+      pendingRepairsHeaders: [
         {
           text: "Room",
-          value: "Number"
+          value: "roomNumber"
         },
         {
-          text: "Pendind Repairs",
-          value: "PendingRepairsCount"
+          text: "Description",
+          value: "description"
         },
         {
-          text: "Last Announcement",
-          value: "LastAnnouncement"
+          text: "AnnouncedAt",
+          value: "announceTime"
         }
       ],
-      roomsWithRepairs: []
+      pendingRepairs: []
     };
   },
   watch: {
@@ -49,10 +49,10 @@ export default {
   },
   methods: {
     getRoomsWithPending() {
-      HTTP.get(`Room/pendingrepairs/hotelsn=${this.hotelsn}`)
+      HTTP.get(`Repair/pending/hotelsn=${this.hotelsn}`)
         .then(response => {
           if (response.status == 200 && response.data) {
-            this.roomsWithRepairs = response.data;
+            this.pendingRepairs = response.data;
           }
         })
     }

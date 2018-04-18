@@ -55,6 +55,8 @@
                 slot="activator"
                 style="width:30px;height:30px"
                 color="primary" small fab
+                @click.native="getRoomRepairs()"
+                :disabled="repairsLoading"
                 >
                 <v-icon>refresh</v-icon>
               </v-btn>
@@ -132,6 +134,7 @@ export default {
       rowsPerPage: [15, 30, 50, { text: "All", value: -1 }],
       allRooms: [],
       roomsLoading: false,
+      repairsLoading: false,
       onlyPending: false,
       daysBefore: 30,
       roomHeaders: [
@@ -170,10 +173,11 @@ export default {
       this.roomsLoading = true;
       HTTP.get(`Room/repairs/hotelsn=${this.hotelsn}&skip=0&take=0&daysBefore=${this.daysBefore}`)
         .then(result => {
-          console.log(`Data: ${JSON.stringify(result, null, 2)}`);
           if (result.status == 200 && result.data) {
             this.allRooms = result.data;
+            console.log(`Rooms Data : ${JSON.stringify(this.allRooms)}`);
             this.selectedRoom.Number = this.allRooms[0].Number;
+            this.selectedRoom.RoomID = this.allRooms[0].roomID;
             this.selectedRoom.Repairs = this.allRooms[0].Repairs;
             // this.selectedRoom = this.allRooms[0];
           }
@@ -184,8 +188,27 @@ export default {
           this.roomsLoading = false;
         });
     },
+    getRoomRepairs() {
+      this.repairsLoading = true;
+
+      HTTP.get(`Repair/room/hotelsn=${this.hotelsn}&roomid=${this.selectedRoom.RoomID}&daysBefore=365`)
+        .then(result => {
+          if (result.status == 200 && result.data) {
+            this.selectedRoom.Repairs = result.data;
+            console.log(`Repairs for room: ${this.selectedRoom.Number}: ${JSON.stringify(this.selectedRoom.Repairs)}`);
+            // this.selectedRoom = this.allRooms[0];
+          }
+          this.repairsLoading = false;
+        })
+        .catch(error => {
+          console.log(`Get Repairs for room Error: ${JSON.stringify(error)}`);
+          this.repairsLoading = false;
+        });
+    },
     onSelectRoom(room) {
       this.selectedRoom.Number = room.Number;
+      this.selectedRoom.RoomID = room.roomID;
+      this.getRoomRepairs();
     },
     onChangeSelection() {
       this.onlyPending = !this.onlyPending;
