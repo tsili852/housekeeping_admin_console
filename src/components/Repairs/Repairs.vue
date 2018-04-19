@@ -20,10 +20,10 @@
               </v-btn>
               <span>Refresh</span>
             </v-tooltip>
-            <v-btn color="primary" small :outline="onlyPending" @click="onChangeSelection()">
+            <v-btn color="primary" small :outline="!onlyPending" @click="onChangeSelection()">
               Pending
             </v-btn>
-            <v-btn color="primary" small :outline="!onlyPending" @click="onChangeSelection()">
+            <v-btn color="primary" small :outline="onlyPending" @click="onChangeSelection()">
               All
             </v-btn>
           </div>
@@ -63,7 +63,7 @@
               <span>Refresh</span>
             </v-tooltip>
             <v-tooltip right>
-              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark>
+              <v-btn slot="activator" style="width:30px;height:30px" color="primary" small fab dark @click="addRepair()">
                 <v-icon>add</v-icon>
               </v-btn>
               <span>Announce a Repair</span>
@@ -72,43 +72,60 @@
           <div class="panel-contents">
             <v-data-table :items="selectedRoom.Repairs" class="elevation-1" hide-headers must-sort :rows-per-page-items="rowsPerPage">
               <template slot="items" slot-scope="repairs">
-                <td v-if="!repairs.item.EndAt"><v-icon color="warning">fa-exclamation-circle</v-icon></td>
-                <td v-if="repairs.item.EndAt"><v-icon color="success">fa-check-circle</v-icon></td>
-                <td>{{ repairs.item.Description }}</td>
-                <td>{{ repairs.item.AnnouncedAt | date }}</td>
+                <tr :class="{'repair-selected': selectedRepair.RepairID === repairs.item.RepairID}" @click="onSelectRepair(repairs.item)">
+                  <td v-if="!(repairs.item.EndAt || repairs.item.StartAt)"><v-icon color="warning">fa-exclamation-circle</v-icon></td>
+                  <td v-if="(repairs.item.StartAt && !repairs.item.EndAt)"><v-icon color="info">fa-play-circle</v-icon></td>
+                  <td v-if="repairs.item.EndAt"><v-icon color="success">fa-check-circle</v-icon></td>
+                  <td>{{ repairs.item.Description }}</td>
+                  <td>{{ repairs.item.AnnouncedAt | date }}</td>
+                </tr>
               </template>
             </v-data-table>
           </div>
-          <!-- <div class="panel-contents">
-            <v-data-table :items="selectedRoom.repairs" class="elevation-1" hide-headers must-sort :rows-per-page-items="rowsPerPage">
-              <template slot="items" slot-scope="repairs">
-                <td v-if="!repairs.item.fixed"><v-icon color="warning">fa-exclamation-circle</v-icon></td>
-                <td v-if="repairs.item.fixed"><v-icon color="success">fa-check-circle</v-icon></td>
-                <td>{{ repairs.item.description }}</td>
-                <td>{{ repairs.item.anouncementTime }}</td>
-              </template>
-            </v-data-table>
-          </div> -->
         </div>
       </v-flex>
       <v-flex xs12 sm5>
-        <div class="panel-container" style="padding:20px">
+        <div class="panel-container" :class="{'new-repair': selectedRepair.isNew}" style="padding:20px" v-if="!selectedRepair.isEmpty">
           <form>
-            <v-text-field label="Description" v-model="selectedRepair.description">
+            <v-text-field ref="descriptionInputBox" label="Description" clearable v-model="selectedRepair.Description">
             </v-text-field>
-            <v-text-field label="Amount" v-model="selectedRepair.amount">
+            <v-container grid-list-md fluid>
+              <v-layout row wrap justify-space-between>
+                <v-flex xs5>
+                  <v-text-field label="Amount" v-model="selectedRepair.Amount" prepend-icon="fa-euro-sign">
+                  </v-text-field>
+                </v-flex>
+                <v-flex xs6 align-end>
+                  <v-select label="Who Reported ?" v-model="selectedRepair.reportedFrom" :items="whoReportedList"></v-select>
+                </v-flex>
+              </v-layout>
+            </v-container>
+            <v-text-field label="Technician" readonly v-model="selectedRepair.Technician">
             </v-text-field>
-            <v-select label="Who Reported ?" v-model="selectedRepair.reportedFrom" :items="whoReportedList"></v-select>
-            <img src="https://media-cdn.tripadvisor.com/media/photo-s/07/71/69/ee/alcatraz.jpg" alt="" width="130" height="200">
-            <br>
-            <v-btn color="success" :outline="!(selectedRepair.status == 'fixed')" small @click="selectedRepair.status = 'fixed'">
+            <p class="repair-label">
+              <span style="font-weight:500;">Announced :</span> <span v-if="selectedRepair.AnnouncedAt">{{selectedRepair.AnnouncedAt | date}}</span>
+            </p>
+            <p class="repair-label">
+              <span id="repair-started-date">Started :</span>
+              <span v-if="selectedRepair.StartAt">{{selectedRepair.StartAt | date}}</span>
+              <span v-else>Not Started</span>
+            </p>
+            <p class="repair-label">
+              <span id="repair-fixed-date">Fixed :</span>
+              <span v-if="selectedRepair.EndAt">{{selectedRepair.EndAt | date}}</span>
+              <span v-else>Not Fixed</span>
+            </p>
+            <!-- <img src="https://media-cdn.tripadvisor.com/media/photo-s/07/71/69/ee/alcatraz.jpg" alt="" width="130" height="200"> -->
+            <v-btn color="success" :outline="!repairFixed"
+                  small @click="onFixRepair()">
               Fixed
             </v-btn>
-            <v-btn color="warning" :outline="!(selectedRepair.status == 'started')" small @click="selectedRepair.status = 'started'">
+            <v-btn color="warning" :outline="!repairStarted"
+                  small @click="onStartRepair()">
               Started
             </v-btn>
             <br>
-            <v-btn color="secondary" small fab>
+            <v-btn color="secondary" small fab @click="onSaveRepair()">
               <v-icon>save</v-icon>
             </v-btn>
             <v-btn color="error" small fab>
@@ -118,6 +135,13 @@
         </div>
       </v-flex>
     </v-layout>
+    <v-snackbar
+      :color="snackbarColor"
+      v-model="snackbar"
+      >
+      {{ snackbarMessage }}
+      <v-btn dark flat @click.native="snackbar = false">Close</v-btn>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -131,12 +155,15 @@ import * as _ from 'lodash';
 export default {
   data() {
     return {
+      $refs: {
+        descriptionInputBox: HTMLFormElement
+      },
       rowsPerPage: [15, 30, 50, { text: "All", value: -1 }],
       allRooms: [],
       roomsLoading: false,
       repairsLoading: false,
-      onlyPending: false,
-      daysBefore: 30,
+      onlyPending: true,
+      daysBefore: 0,
       roomHeaders: [
         {
           text: "Room",
@@ -147,19 +174,21 @@ export default {
           value: "PendingRepairsCount"
         }
       ],
-      selectedRepair: {
-        description: "Broken Door",
-        amount: "15.4",
-        reportedFrom: "Customer",
-        status: "fixed"
+      emptyRepair: {
+        Description: "",
+        RepairID: 0,
+        Amount: 0,
+        AnnouncedAt: null
       },
+      selectedRepair: {},
+      repairStarted: false,
+      repairFixed: false,
       whoReportedList: ["Customer", "Maid", "Technician", "Reception"],
       // selectedRoom: {}
-      selectedRoom: {
-        Number: "",
-        RoomID: "",
-        Repairs: []
-      }
+      selectedRoom: {},
+      snackbar: false,
+      snackbarColor: '',
+      snackbarMessage: ''
     };
   },
   computed: {
@@ -175,10 +204,12 @@ export default {
         .then(result => {
           if (result.status == 200 && result.data) {
             this.allRooms = result.data;
-            console.log(`Rooms Data : ${JSON.stringify(this.allRooms)}`);
             this.selectedRoom.Number = this.allRooms[0].Number;
-            this.selectedRoom.RoomID = this.allRooms[0].roomID;
+            this.selectedRoom.RoomID = this.allRooms[0].RoomID;
             this.selectedRoom.Repairs = this.allRooms[0].Repairs;
+            this.selectedRoom.HotelSN = this.allRooms[0].HotelSN;
+
+            this.getRoomRepairs();
             // this.selectedRoom = this.allRooms[0];
           }
           this.roomsLoading = false;
@@ -197,6 +228,16 @@ export default {
             this.selectedRoom.Repairs = result.data;
             console.log(`Repairs for room: ${this.selectedRoom.Number}: ${JSON.stringify(this.selectedRoom.Repairs)}`);
             // this.selectedRoom = this.allRooms[0];
+            if (this.selectedRoom.Repairs.length > 0) {
+              this.selectedRepair = this.selectedRoom.Repairs[0];
+              this.repairFixed = this.selectedRepair.EndAt ? true : false;
+              this.repairStarted = this.selectedRepair.StartAt ? true : false;
+              this.selectedRepair.isEmpty = false;
+            }
+            else {
+              this.selectedRepair = this.emptyRepair;
+              this.selectedRepair.isEmpty = true;
+            }
           }
           this.repairsLoading = false;
         })
@@ -207,8 +248,14 @@ export default {
     },
     onSelectRoom(room) {
       this.selectedRoom.Number = room.Number;
-      this.selectedRoom.RoomID = room.roomID;
+      this.selectedRoom.RoomID = room.RoomID;
+      this.selectedRoom.HotelSN = room.HotelSN;
       this.getRoomRepairs();
+    },
+    onSelectRepair(repair) {
+      this.selectedRepair = repair;
+      this.repairFixed = this.selectedRepair.EndAt ? true : false;
+      this.repairStarted = this.selectedRepair.StartAt ? true : false;
     },
     onChangeSelection() {
       this.onlyPending = !this.onlyPending;
@@ -220,6 +267,92 @@ export default {
       }
 
       this.getRooms();
+    },
+    onStartRepair() {
+      if (!this.selectedRepair.StartAt) {
+        this.selectedRepair.StartAt = new Date();
+        this.repairStarted = true;
+      }
+    },
+    onFixRepair() {
+      if (!this.selectedRepair.EndAt) {
+        this.selectedRepair.EndAt = new Date();
+        this.repairFixed = true;
+        if (!this.selectedRepair.StartAt) {
+          this.selectedRepair.StartAt = new Date();
+          this.repairStarted = true;
+        }
+      }
+    },
+    addRepair() {
+      let newRepair = {
+        Technician: "",
+        RoomID: this.selectedRoom.RoomID,
+        RepairID: 0,
+        Amount: 0,
+        Description: "",
+        TaskName: "",
+        isNew: true,
+        isEmpty: false
+      };
+
+      this.selectedRepair = newRepair;
+      this.$nextTick(() => this.$refs.descriptionInputBox.focus())
+    },
+    onSaveRepair() {
+      if (this.selectedRepair.RepairID > 0) {
+        let toUpdate = {
+          changeType: '',
+          description: this.selectedRepair.Description,
+          endtime: this.selectedRepair.EndAt,
+          hotelsn: '',
+          maintenanceid: null,
+          photo: null,
+          repairid: this.selectedRepair.RepairID,
+          starttime: this.selectedRepair.StartAt,
+          technicianid: null,
+          whoreported: null
+        };
+
+        HTTP.post(`Repair/update`, toUpdate)
+          .then(result => {
+            console.log(`Repair Updated: ${JSON.stringify(result, null, 2)}`);
+            this.snackbarMessage = "Repair Updated Successfully";
+            this.snackbarColor = "success";
+            this.snackbar = true;
+          })
+          .catch(err => {
+            this.snackbarMessage = "Repair Update Error";
+            this.snackbarColor = "error";
+            this.snackbar = true;
+            console.log(`Update Repair error: ${JSON.stringify(err, null, 2)}`);
+          })
+      } else {
+        let toAnnounce = {
+          hotelsn:  this.selectedRoom.HotelSN,
+          roomid: this.selectedRoom.RoomID,
+          maintenanceid: null,
+          description: this.selectedRepair.Description,
+          amount: this.selectedRepair.Amount,
+          whoreported: 1,
+          technicianid: 1,
+          photo: null
+        };
+
+        HTTP.post(`Repair/announce`, toAnnounce)
+          .then(result => {
+            console.log(`Repair Announced: ${JSON.stringify(result, null, 2)}`);
+            this.snackbarMessage = "Repair Created Successfully";
+            this.snackbarColor = "success";
+            this.snackbar = true;
+          })
+          .catch(err => {
+            this.snackbarMessage = "Repair Creation Error";
+            this.snackbarColor = "error";
+            this.snackbar = true;
+            console.log(`Create Repair error: ${JSON.stringify(err, null, 2)}`);
+          })
+      }
     }
   }
 };
@@ -237,6 +370,10 @@ export default {
   background-color: #fff;
   margin-bottom: 10px;
   padding: 5px;
+}
+
+.panel-container.new-repair {
+  background-color: rgb(240, 255, 241);
 }
 
 .panel-header {
@@ -290,10 +427,30 @@ export default {
 }
 
 .room-selected {
-  background-color: #ffccbc;
+  background-color: #ffece7;
+}
+
+.repair-selected {
+  background-color:  #ffece7;
 }
 
 .rooms-table-tr:hover {
   background-color: #ffccbc;
+}
+
+.repair-label {
+  font-size: 15px;
+}
+
+#repair-started-date {
+  font-weight:500;
+  text-decoration:underline;
+  text-decoration-color:rgb(206, 158, 3);
+}
+
+#repair-fixed-date {
+  font-weight:500;
+  text-decoration:underline;
+  text-decoration-color:rgb(50, 173, 110);
 }
 </style>
