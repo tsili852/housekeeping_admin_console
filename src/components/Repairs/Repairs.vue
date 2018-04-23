@@ -100,8 +100,9 @@
                 </v-flex>
               </v-layout>
             </v-container>
-            <v-text-field label="Technician" readonly v-model="selectedRepair.Technician">
-            </v-text-field>
+            <v-select label="Technician" v-model="selectedTechnicianIndex" :items="technicians" item-text="name" item-value="technicianID" v-on:change="onSelectTechnician($event)"></v-select>
+            <!-- <v-text-field label="Technician" readonly v-model="selectedRepair.Technician">
+            </v-text-field> -->
             <p class="repair-label">
               <span style="font-weight:500;">Announced :</span> <span v-if="selectedRepair.AnnouncedAt">{{selectedRepair.AnnouncedAt | date}}</span>
             </p>
@@ -188,7 +189,9 @@ export default {
       selectedRoom: {},
       snackbar: false,
       snackbarColor: '',
-      snackbarMessage: ''
+      snackbarMessage: '',
+      technicians: [],
+      selectedTechnicianIndex: 0
     };
   },
   computed: {
@@ -196,6 +199,7 @@ export default {
   },
   created() {
     this.getRooms();
+    this.getTechnicians();
   },
   methods: {
     getRooms() {
@@ -226,13 +230,13 @@ export default {
         .then(result => {
           if (result.status == 200 && result.data) {
             this.selectedRoom.Repairs = result.data;
-            console.log(`Repairs for room: ${this.selectedRoom.Number}: ${JSON.stringify(this.selectedRoom.Repairs)}`);
             // this.selectedRoom = this.allRooms[0];
             if (this.selectedRoom.Repairs.length > 0) {
               this.selectedRepair = this.selectedRoom.Repairs[0];
               this.repairFixed = this.selectedRepair.EndAt ? true : false;
               this.repairStarted = this.selectedRepair.StartAt ? true : false;
               this.selectedRepair.isEmpty = false;
+              this.selectedTechnicianIndex = this.technicians.map((e) => e.name).indexOf(this.selectedRepair.Technician) + 1;
             }
             else {
               this.selectedRepair = this.emptyRepair;
@@ -246,6 +250,15 @@ export default {
           this.repairsLoading = false;
         });
     },
+    getTechnicians() {
+      HTTP.get(`Technician/hotelsn=${this.hotelsn}`)
+        .then(result => {
+          if (result.status == 200 && result.data) {
+            this.technicians = result.data;
+            console.log(`Technicians: ${JSON.stringify(this.technicians, null, 2)}`);
+          }
+        })
+    },
     onSelectRoom(room) {
       this.selectedRoom.Number = room.Number;
       this.selectedRoom.RoomID = room.RoomID;
@@ -256,6 +269,7 @@ export default {
       this.selectedRepair = repair;
       this.repairFixed = this.selectedRepair.EndAt ? true : false;
       this.repairStarted = this.selectedRepair.StartAt ? true : false;
+      this.selectedTechnicianIndex = this.technicians.map((e) => e.name).indexOf(this.selectedRepair.Technician) + 1;
     },
     onChangeSelection() {
       this.onlyPending = !this.onlyPending;
@@ -284,6 +298,10 @@ export default {
         }
       }
     },
+    onSelectTechnician(index) {
+      this.selectedTechnicianIndex = index;
+      console.log(`Select Technician: ${this.selectedTechnicianIndex}`)
+    },
     addRepair() {
       let newRepair = {
         Technician: "",
@@ -310,13 +328,12 @@ export default {
           photo: null,
           repairid: this.selectedRepair.RepairID,
           starttime: this.selectedRepair.StartAt,
-          technicianid: null,
+          technicianid: this.technicians[this.selectedTechnicianIndex - 1].technicianID,
           whoreported: null
         };
 
         HTTP.post(`Repair/update`, toUpdate)
           .then(result => {
-            console.log(`Repair Updated: ${JSON.stringify(result, null, 2)}`);
             this.snackbarMessage = "Repair Updated Successfully";
             this.snackbarColor = "success";
             this.snackbar = true;
@@ -335,13 +352,12 @@ export default {
           description: this.selectedRepair.Description,
           amount: this.selectedRepair.Amount,
           whoreported: 1,
-          technicianid: 1,
+          technicianid: this.technicians[this.selectedTechnicianIndex - 1].technicianID,
           photo: null
         };
 
         HTTP.post(`Repair/announce`, toAnnounce)
           .then(result => {
-            console.log(`Repair Announced: ${JSON.stringify(result, null, 2)}`);
             this.snackbarMessage = "Repair Created Successfully";
             this.snackbarColor = "success";
             this.snackbar = true;
