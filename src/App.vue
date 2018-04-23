@@ -132,8 +132,8 @@ export default {
       hotelSNError: false,
       hotelSNCorrect: false,
       title: "Hotel Housekeeping",
-      versionNumber: "v0.0.1",
-      versionDate: "08/03/2018",
+      versionNumber: "v0.1.3",
+      versionDate: "23/04/2018",
       tempHotelSN: ''
     };
   },
@@ -160,8 +160,8 @@ export default {
         // console.log(`Result: ${JSON.stringify(result, null, 2)}`);
         if (result.status == 200 && result.data) {
           hotelName = result.data.name;
-        } 
-        this.updateHotel({hotelsn: this.hotel.hotelsn, name: hotelName});        
+        }
+        this.updateHotel({hotelsn: this.hotel.hotelsn, name: hotelName});
         console.log(`Hotel Name : ${this.hotel.name}`);
       }
     )
