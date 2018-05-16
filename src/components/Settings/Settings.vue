@@ -86,6 +86,9 @@
           <v-btn color="primary" small fab @click="onAddRoom()">
             <v-icon>add</v-icon>
           </v-btn>
+          <v-btn color="green" dark small fab @click="getRooms()">
+            <v-icon>refresh</v-icon>
+          </v-btn>
           <v-data-table
               :headers="roomHeaders"
               :items="allRooms"
@@ -95,7 +98,7 @@
               :rows-per-page-items="rowsPerPage">
               <v-progress-linear slot="progress" color="primary" indeterminate></v-progress-linear>
               <template slot="items" slot-scope="rooms">
-                <tr @click="onSelectRoom(rooms.item)">
+                <tr>
                   <td>{{ rooms.item.Number }}</td>
                   <td>{{ rooms.item.RoomType }}</td>
                   <td>{{ rooms.item.AllRepairsCount }}</td>
@@ -159,6 +162,9 @@
           </v-dialog>
           <v-btn color="primary" small fab @click="onAddMTask()">
             <v-icon>add</v-icon>
+          </v-btn>
+          <v-btn color="green" dark small fab @click="getMTasks()">
+            <v-icon>refresh</v-icon>
           </v-btn>
           <v-data-table
               :headers="mTaskHeaders"
@@ -324,6 +330,38 @@ export default {
     onRoomDialogClose() {
       this.roomDialogOpen = false;
     },
+    onRoomDialogSave() {
+      if (this.selectedRoom.RoomID) {
+        this.updateRoom();
+      } else {
+        this.createRoom();
+      }
+    },
+    createRoom() {
+      let roomToCreate = {
+        hotelsn: this.hotelsn,
+        roomid: 0,
+        number: this.selectedRoom.Number,
+        mobileRoom: true
+      };
+
+      console.log(`RoomToCreate: ${JSON.stringify(roomToCreate, null, 2)}`);
+
+      HTTP.post('Room', roomToCreate)
+        .then(result => {
+          console.log(`Result: ${JSON.stringify(result)}`);
+        })
+        .catch(error => {
+          console.log(`Create Room Error: ${error}`);
+          this.roomDialogOpen = false;
+        })
+
+        this.roomDialogOpen = false;
+        this.getRooms();
+    },
+    updateRoom() {
+      alert('Update Room');
+    },
     onAddMTask() {
       this.selectedMTask = {
         Name: '',
@@ -344,6 +382,19 @@ export default {
     },
     onMTaskDialogClose() {
       this.mTaskDialogOpen = false;
+    },
+    onMTaskDialogSave() {
+      if (this.selectedMTask.Id) {
+        this.updateMTask();
+      } else {
+        this.createMTask();
+      }
+    },
+    createMTask() {
+      alert('Create Maintenance Task');
+    },
+    updateMTask() {
+      alert('Update Maintenance Task');
     }
   }
 };

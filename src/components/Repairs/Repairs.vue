@@ -55,6 +55,7 @@
                 slot="activator"
                 style="width:30px;height:30px"
                 color="primary" small fab
+                :loading="repairsLoading"
                 @click.native="getRoomRepairs()"
                 :disabled="repairsLoading"
                 >
@@ -103,6 +104,7 @@
             <v-select label="Technician" v-model="selectedTechnicianIndex" :items="technicians" item-text="name" item-value="technicianID" v-on:change="onSelectTechnician($event)"></v-select>
             <!-- <v-text-field label="Technician" readonly v-model="selectedRepair.Technician">
             </v-text-field> -->
+            <img v-if="selectedRepair.Photo" :src="selectedRepair.Photo" style="width: 200px; height: 300px">
             <p class="repair-label">
               <span style="font-weight:500;">Announced :</span> <span v-if="selectedRepair.AnnouncedAt">{{selectedRepair.AnnouncedAt | date}}</span>
             </p>
@@ -230,6 +232,7 @@ export default {
         .then(result => {
           if (result.status == 200 && result.data) {
             this.selectedRoom.Repairs = result.data;
+            console.log(`Room Repairs: ${JSON.stringify(result.data, null, 2)}`);
             // this.selectedRoom = this.allRooms[0];
             if (this.selectedRoom.Repairs.length > 0) {
               this.selectedRepair = this.selectedRoom.Repairs[0];
@@ -237,6 +240,9 @@ export default {
               this.repairStarted = this.selectedRepair.StartAt ? true : false;
               this.selectedRepair.isEmpty = false;
               this.selectedTechnicianIndex = this.technicians.map((e) => e.name).indexOf(this.selectedRepair.Technician) + 1;
+              if (this.selectedRepair.Photo) {
+                this.selectedRepair.Photo = `data:image/png;base64,${this.selectedRepair.Photo}`;
+              }
             }
             else {
               this.selectedRepair = this.emptyRepair;
