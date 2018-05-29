@@ -194,6 +194,17 @@
     </v-tab-item>
   </v-tabs>
   </div>
+  <v-snackbar
+      color="white"
+      v-model="snackbar"
+      timeout="3000"
+      >
+      <div style="color: black">{{ snackbarMessage }}</div>
+      <!-- <v-btn light flat @click.native="snackbar = false">Close</v-btn> -->
+      <v-btn icon @click.native="snackbar = false">
+        <v-icon color="success">done</v-icon>
+      </v-btn>
+    </v-snackbar>
 </v-container>
 </template>
 
@@ -267,7 +278,9 @@ export default {
           text: "Actions",
           value: ""
         }
-      ]
+      ],
+      snackbar: false,
+      snackbarMessage: '',
     };
   },
   computed: {
@@ -365,7 +378,7 @@ export default {
           console.log(`Create Room Error: ${error}`);
           this.roomDialogOpen = false;
         });
-
+      this.showSnackBar("Room Created");
       this.roomDialogOpen = false;
       setTimeout(() => {
         this.getRooms();
@@ -387,7 +400,7 @@ export default {
         .catch(error => {
           console.log(`Update Room Error: ${JSON.stringify(error, null, 2)}`);
         });
-
+      this.showSnackBar("Room Updated");
       this.roomDialogOpen = false;
       setTimeout(() => {
         this.getRooms();
@@ -407,6 +420,7 @@ export default {
           console.log(`Delete Room Error: ${JSON.stringify(error, null, 2)}`);
         });
 
+      this.showSnackBar("Room Deleted");
       this.roomDeleteDialogOpen = false;
       setTimeout(() => {
         this.getRooms();
@@ -463,7 +477,7 @@ export default {
         .catch(error => {
           console.log(`Create MTask Error: ${JSON.stringify(error, null, 2)}`);
         });
-
+      this.showSnackBar("Maintenance Task Created");
       this.mTaskDialogOpen = false;
       setTimeout(() => {
         this.getMTasks();
@@ -486,7 +500,7 @@ export default {
         .catch(error => {
           console.log(`Udpate MTask Error: ${JSON.stringify(error, null, 2)}`);
         });
-
+      this.showSnackBar("Maintenance Task Updated");
       this.mTaskDialogOpen = false;
       setTimeout(() => {
         this.getMTasks();
@@ -503,10 +517,15 @@ export default {
           console.log(`MTask Room Error: ${JSON.stringify(error, null, 2)}`);
         });
 
+      this.showSnackBar("Maintenance Task Deleted");
       this.mTaskDeleteDialogOpen = false;
       setTimeout(() => {
         this.getMTasks();
       }, 100);
+    },
+    showSnackBar(message) {
+      this.snackbarMessage = message;
+      this.snackbar = true;
     }
   }
 };
