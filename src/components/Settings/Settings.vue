@@ -53,8 +53,8 @@
                 <v-card-text style="font-size:16px">Are you sure you want to delete room <span style="text-decoration:underline; font-weight:500">{{ selectedRoom.Number }}</span> ?</v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn @click.native="roomDeleteDialogOpen = false">Cancel</v-btn>
-                  <v-btn color="primary darken-1" @click.native="roomDeleteDialogOpen = false">Delete</v-btn>
+                  <v-btn @click.native="onDeleteRoomDialogClose()">Cancel</v-btn>
+                  <v-btn color="primary darken-1" @click.native="onDeleteRoomDialogSave()">Delete</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -126,12 +126,12 @@
           <v-layout row justify-center>
             <v-dialog v-model="mTaskDeleteDialogOpen" persistent max-width="290">
               <v-card>
-                <v-card-title class="headline">Delete Maintenance Task</v-card-title>
+                <v-card-title class="headline" style="font-size:22px !important">Delete Maintenance Task</v-card-title>
                 <v-card-text style="font-size:16px">Are you sure you want to delete maintenance task <span style="text-decoration:underline; font-weight:500">{{ selectedMTask.Name }}</span> ?</v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn @click.native="mTaskDeleteDialogOpen = false">Cancel</v-btn>
-                  <v-btn color="primary darken-1" @click.native="mTaskDeleteDialogOpen = false">Delete</v-btn>
+                  <v-btn @click.native="onDeleteMTaskDialogClose()">Cancel</v-btn>
+                  <v-btn color="primary darken-1" @click.native="onDeleteMTaskDialogSave()">Delete</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -210,13 +210,13 @@ export default {
       roomsLoading: false,
       roomDialogOpen: false,
       roomDeleteDialogOpen: false,
-      roomDialogTitle: 'Create Room',
+      roomDialogTitle: "Create Room",
       selectedRoom: {
-        Number: '',
-        RoomType: '',
-        RoomID: '',
-        HotelSN: '',
-        Customer: ''
+        Number: "",
+        RoomType: "",
+        RoomID: "",
+        HotelSN: "",
+        Customer: ""
       },
       roomHeaders: [
         {
@@ -248,11 +248,11 @@ export default {
       mTasksLoading: false,
       mTaskDialogOpen: false,
       mTaskDeleteDialogOpen: false,
-      mTaskDialogTitle: 'Create Maintenance Task',
+      mTaskDialogTitle: "Create Maintenance Task",
       selectedMTask: {
-        Name: '',
+        Name: "",
         Amount: 0,
-        Id: ''
+        Id: ""
       },
       mTaskHeaders: [
         {
@@ -280,11 +280,15 @@ export default {
   methods: {
     getRooms() {
       this.roomsLoading = true;
-      HTTP.get(`Room/repairs/hotelsn=${this.hotelsn}&skip=0&take=0&daysBefore=${this.daysBefore}`)
+      HTTP.get(
+        `Room/repairs/hotelsn=${this.hotelsn}&skip=0&take=0&daysBefore=${
+          this.daysBefore
+        }`
+      )
         .then(result => {
           if (result.status == 200 && result.data) {
             this.allRooms = result.data;
-            console.log(`Rooms: ${JSON.stringify(this.allRooms, null, 2)}`);
+            // console.log(`Rooms: ${JSON.stringify(this.allRooms, null, 2)}`);
           }
           this.roomsLoading = false;
         })
@@ -305,15 +309,15 @@ export default {
         .catch(error => {
           console.log(`Get Maintenance Tasks Error: ${JSON.stringify(error)}`);
           this.mTasksLoading = false;
-        })
+        });
     },
     onAddRoom() {
       this.selectedRoom = {
-        Number: '',
-        RoomType: '',
-        RoomID: '',
-        HotelSN: '',
-        Customer: ''
+        Number: "",
+        RoomType: "",
+        RoomID: "",
+        HotelSN: "",
+        Customer: ""
       };
       this.roomDialogTitle = "Create Room";
       this.roomDialogOpen = true;
@@ -326,6 +330,12 @@ export default {
     onDeleteRoom(room) {
       this.selectedRoom = room;
       this.roomDeleteDialogOpen = true;
+    },
+    onDeleteRoomDialogClose() {
+      this.roomDeleteDialogOpen = false;
+    },
+    onDeleteRoomDialogSave() {
+      this.deleteRoom();
     },
     onRoomDialogClose() {
       this.roomDialogOpen = false;
@@ -347,26 +357,66 @@ export default {
 
       console.log(`RoomToCreate: ${JSON.stringify(roomToCreate, null, 2)}`);
 
-      HTTP.post('Room', roomToCreate)
+      HTTP.post("Room", roomToCreate)
         .then(result => {
-          console.log(`Result: ${JSON.stringify(result)}`);
+          console.log(`Create Result: ${JSON.stringify(result)}`);
         })
         .catch(error => {
           console.log(`Create Room Error: ${error}`);
           this.roomDialogOpen = false;
-        })
+        });
 
-        this.roomDialogOpen = false;
+      this.roomDialogOpen = false;
+      setTimeout(() => {
         this.getRooms();
+      }, 100);
     },
     updateRoom() {
-      alert('Update Room');
+      let roomToUpdate = {
+        hotelsn: this.hotelsn,
+        roomid: this.selectedRoom.RoomID,
+        number: this.selectedRoom.Number
+      };
+
+      console.log(`RoomToUpdate: ${JSON.stringify(roomToUpdate, null, 2)}`);
+
+      HTTP.put("Room", roomToUpdate)
+        .then(result => {
+          console.log(`Update Result: ${JSON.stringify(result, null, 2)}`);
+        })
+        .catch(error => {
+          console.log(`Update Room Error: ${JSON.stringify(error, null, 2)}`);
+        });
+
+      this.roomDialogOpen = false;
+      setTimeout(() => {
+        this.getRooms();
+      }, 100);
+      // alert('Update Room');
+    },
+    deleteRoom() {
+      console.log(
+        `RoomToDelete: ${JSON.stringify(this.selectedRoom, null, 2)}`
+      );
+
+      HTTP.delete(`Room/hotelsn=${this.hotelsn}&id=${this.selectedRoom.RoomID}`)
+        .then(result => {
+          console.log(`Room ${this.selectedRoom.RoomID} deleted`);
+        })
+        .catch(error => {
+          console.log(`Delete Room Error: ${JSON.stringify(error, null, 2)}`);
+        });
+
+      this.roomDeleteDialogOpen = false;
+      setTimeout(() => {
+        this.getRooms();
+      }, 100);
     },
     onAddMTask() {
       this.selectedMTask = {
-        Name: '',
-        Amount: '',
-        Id: ''
+        Name: "",
+        Amount: "",
+        Id: ""
       };
       this.mTaskDialogTitle = "Create Maintenace Task";
       this.mTaskDialogOpen = true;
@@ -390,11 +440,73 @@ export default {
         this.createMTask();
       }
     },
+    onDeleteMTaskDialogClose() {
+      this.mTaskDeleteDialogOpen = false;
+    },
+    onDeleteMTaskDialogSave() {
+      this.deleteMTAsk();
+    },
     createMTask() {
-      alert('Create Maintenance Task');
+      let mTastToCreate = {
+        hotelsn: this.hotelsn,
+        mTaskId: 0,
+        name: this.selectedMTask.Name,
+        amount: this.selectedMTask.Amount
+      };
+
+      console.log(`MTaskToCreate: ${JSON.stringify(mTastToCreate, null, 2)}`);
+
+      HTTP.post("MaintenanceTask", mTastToCreate)
+        .then(result => {
+          console.log(`Create MTask Result: ${JSON.stringify(result)}`);
+        })
+        .catch(error => {
+          console.log(`Create MTask Error: ${JSON.stringify(error, null, 2)}`);
+        });
+
+      this.mTaskDialogOpen = false;
+      setTimeout(() => {
+        this.getMTasks();
+      }, 500);
     },
     updateMTask() {
-      alert('Update Maintenance Task');
+      let mTaskToUpdate = {
+        hotelsn: this.hotelsn,
+        mTaskId: this.selectedMTask.Id,
+        name: this.selectedMTask.Name,
+        amount: this.selectedMTask.Amount
+      };
+
+      console.log(`MTaskToUpdate: ${JSON.stringify(mTaskToUpdate, null, 2)}`);
+
+      HTTP.put('MaintenanceTask', mTaskToUpdate)
+        .then(result => {
+          console.log(`Update MTask Result: ${JSON.stringify(result)}`);
+        })
+        .catch(error => {
+          console.log(`Udpate MTask Error: ${JSON.stringify(error, null, 2)}`);
+        });
+
+      this.mTaskDialogOpen = false;
+      setTimeout(() => {
+        this.getMTasks();
+      }, 500);
+    },
+    deleteMTAsk() {
+      console.log(`MTaskToDelete: ${JSON.stringify(this.selectedMTask, null, 2)}`);
+
+      HTTP.delete(`MaintenanceTask/hotelsn=${this.hotelsn}&id=${this.selectedMTask.Id}`)
+        .then(result => {
+          console.log(`Maintenance Task ${this.selectedMTask.RoomID} deleted`);
+        })
+        .catch(error => {
+          console.log(`MTask Room Error: ${JSON.stringify(error, null, 2)}`);
+        });
+
+      this.mTaskDeleteDialogOpen = false;
+      setTimeout(() => {
+        this.getMTasks();
+      }, 100);
     }
   }
 };
