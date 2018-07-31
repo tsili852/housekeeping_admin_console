@@ -186,8 +186,13 @@ export default {
       selectedRepair: {},
       repairStarted: false,
       repairFixed: false,
-      whoReportedList: ["Customer", "Maid", "Technician", "Reception"],
-      // selectedRoom: {}
+      // whoReportedList: ["Customer", "Maid", "Technician", "Reception"],
+      whoReportedList: [
+        {text: 'Customer', value: 2},
+        {text: 'Maid', value: 4},
+        {text: 'Reception', value: 8},
+        {text: 'Technician', value: 16}
+        ],
       selectedRoom: {},
       snackbar: false,
       snackbarColor: '',
@@ -335,7 +340,7 @@ export default {
           repairid: this.selectedRepair.RepairID,
           starttime: this.selectedRepair.StartAt,
           technicianid: this.technicians[this.selectedTechnicianIndex - 1].technicianID,
-          whoreported: null
+          whoreported: this.selectedRepair.reportedFrom
         };
 
         HTTP.post(`Repair/update`, toUpdate)
@@ -357,7 +362,7 @@ export default {
           maintenanceid: null,
           description: this.selectedRepair.Description,
           amount: this.selectedRepair.Amount,
-          whoreported: 1,
+          whoreported: this.selectedRepair.reportedFrom,
           technicianid: this.technicians[this.selectedTechnicianIndex - 1].technicianID,
           photo: null
         };
