@@ -11,6 +11,7 @@ import VueLocalStorage from 'vue-localstorage';
 import DateFilter from './filters/date';
 
 import { store } from './store/store';
+import './registerServiceWorker'
 
 Vue.use(Vuetify, {
   theme: {
