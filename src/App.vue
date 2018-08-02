@@ -132,7 +132,7 @@ export default {
       hotelSNError: false,
       hotelSNCorrect: false,
       title: "Hotel Housekeeping",
-      versionNumber: "v1.1.1",
+      versionNumber: "v1.1.2",
       versionDate: "02/08/2018",
       tempHotelSN: ''
     };
