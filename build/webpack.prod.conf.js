@@ -10,6 +10,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
+const WebpackPwaManifest = require('webpack-pwa-manifest')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 const env = require('../config/prod.env')
@@ -54,9 +55,16 @@ const webpackConfig = merge(baseWebpackConfig, {
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
     new OptimizeCSSPlugin({
-      cssProcessorOptions: config.build.productionSourceMap
-        ? { safe: true, map: { inline: false } }
-        : { safe: true }
+      cssProcessorOptions: config.build.productionSourceMap ?
+        {
+          safe: true,
+          map: {
+            inline: false
+          }
+        } :
+        {
+          safe: true
+        }
     }),
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
@@ -82,7 +90,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
-      minChunks (module) {
+      minChunks(module) {
         // any required modules inside node_modules are extracted to vendor
         return (
           module.resource &&
@@ -110,13 +118,11 @@ const webpackConfig = merge(baseWebpackConfig, {
     }),
 
     // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, '../static'),
-        to: config.build.assetsSubDirectory,
-        ignore: ['.*']
-      }
-    ]),
+    new CopyWebpackPlugin([{
+      from: path.resolve(__dirname, '../static'),
+      to: config.build.assetsSubDirectory,
+      ignore: ['.*']
+    }]),
     // service worker caching
     new SWPrecacheWebpackPlugin({
       cacheId: 'housekeeping-admin-console',
@@ -124,6 +130,49 @@ const webpackConfig = merge(baseWebpackConfig, {
       staticFileGlobs: ['dist/**/*.{js,html,css}'],
       minify: true,
       stripPrefix: 'dist/'
+    }),
+    new WebpackPwaManifest({
+      name: 'Housekeeeping Admin Console',
+      short_name: 'Cloudhotel HK',
+      description: 'Cloudhotel Housekeeping Admin Console',
+      theme_color: '#BF360C',
+      background_color: '#fafafa',
+      start_url: '/index.html',
+      display: 'standalone',
+      icons: [
+        {
+          src: path.resolve('static/images/icons/icon-72x72.png'),
+          size: '72x72'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-96x96.png'),
+          size: '96x96'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-128x128.png'),
+          size: '128x128'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-144x144.png'),
+          size: '144x144'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-152x152.png'),
+          size: '152x152'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-192x192.png'),
+          size: '192x192'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-384x384.png'),
+          size: '384x384'
+        },
+        {
+          src: path.resolve('static/images/icons/icon-512x512.png'),
+          size: '512x512'
+        },
+      ]
     })
   ]
 })
